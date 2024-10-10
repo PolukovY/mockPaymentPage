@@ -78,6 +78,24 @@
     <!-- jQuery Script to handle POST request -->
     <script>
         $(document).ready(function () {
+            // Function to get URL parameters
+            function getUrlParameter(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(name);
+            }
+
+            // Check for useremail in URL and update the email field in JSON
+            const emailFromParam = getUrlParameter('useremail');
+            if (emailFromParam) {
+                try {
+                    let jsonData = JSON.parse($('#jsonData').val());
+                    jsonData.email = emailFromParam; // Update the email field
+                    $('#jsonData').val(JSON.stringify(jsonData, null, 2)); // Update the textarea with the new JSON
+                } catch (e) {
+                    console.error('Invalid JSON format:', e);
+                }
+            }
+
             $('#paymentForm').on('submit', function (e) {
                 e.preventDefault(); // Prevent the default form submission
 
@@ -92,7 +110,6 @@
 
                 try {
                     jsonData = JSON.parse($('#jsonData').val());
-                    console.log('Status:', JSON.stringify(paymentData));
                 } catch (e) {
                     alert('Invalid JSON format. Please check and try again.');
                     return;
