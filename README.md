@@ -12,6 +12,8 @@ To avoid CORS issues while testing the mock payment page, follow these steps:
 2. **Enable Settings**
    - Open the options page for the extension and enable it by following these steps:
      - ![Settings Screenshot](https://github.com/user-attachments/assets/509b908f-3356-4ed0-8db9-39ba99a383ef)
+     - <img width="552" alt="Screenshot 2024-10-10 at 19 49 29" src="https://github.com/user-attachments/assets/2fa997e6-2dce-497e-a319-06f668d7dc15">
+
 
 ## Usage
 
