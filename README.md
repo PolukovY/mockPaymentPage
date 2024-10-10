@@ -20,6 +20,9 @@ Once the CORS settings are enabled, you can access the mock payment page and beg
 ## Features
 
 - Simple and intuitive UI for simulating payment transactions.
+
+<img width="442" alt="Screenshot 2024-10-10 at 19 48 02" src="https://github.com/user-attachments/assets/b9fb1eca-ad8b-4817-8776-25ea2170d657">
+
 - Ability to send POST requests to specified endpoints.
 - Pre-populated JSON data for testing various scenarios.
 
