@@ -45,6 +45,14 @@
             </div>
             <div class="card-body">
                 <form id="paymentForm">
+                    <!-- Dropdown for selecting past input -->
+                    <div class="mb-3">
+                        <label for="pastInputs" class="form-label">Select Past Input</label>
+                        <select id="pastInputs" class="form-control">
+                            <option value="">--Select from saved inputs--</option>
+                        </select>
+                    </div>
+
                     <!-- Card Number -->
                     <div class="mb-3">
                         <label for="cardNumber" class="form-label">Card Number</label>
@@ -57,7 +65,7 @@
                         <input type="text" class="form-control" id="expiryDate" name="expiryDate" placeholder="MM/YY" required>
                     </div>
 
-                    <!-- CVV (Hidden input with ***) -->
+                    <!-- CVV -->
                     <div class="mb-3">
                         <label for="cvv" class="form-label">CVV</label>
                         <input type="password" class="form-control" id="cvv" name="cvv" required>
@@ -69,19 +77,19 @@
                         <input type="number" class="form-control" id="amount" name="amount" required>
                     </div>
 
-                    <!-- API URL (Moved) -->
+                    <!-- API URL -->
                     <div class="mb-3">
                         <label for="apiUrl" class="form-label">API URL</label>
                         <input type="text" class="form-control" id="apiUrl" name="apiUrl" placeholder="Enter API URL" required>
                     </div>
 
-                    <!-- x-api-key (Moved) -->
+                    <!-- x-api-key -->
                     <div class="mb-3">
                         <label for="apiKey" class="form-label">x-api-key</label>
                         <input type="text" class="form-control" id="apiKey" name="apiKey" placeholder="Enter x-api-key" required>
                     </div>
 
-                    <!-- Editable Pre-Populated JSON Data -->
+                    <!-- JSON Data -->
                     <div class="mb-3">
                         <label for="jsonData" class="form-label">Velvet Rope JSON Data</label>
                         <textarea class="form-control" id="jsonData" name="jsonData" rows="6">
@@ -98,44 +106,93 @@
                         </textarea>
                     </div>
 
-                    <!-- Submit Button -->
-                    <button type="submit" class="btn btn-primary w-100" id="submitBtn">Submit Payment</button>
+                    <!-- Buttons -->
+                    <button type="button" class="btn btn-secondary w-100 mb-2" id="clearAllBtn">Clear All</button>
+                    <button type="reset" class="btn btn-warning w-100 mb-2" id="resetBtn">Reset</button>
+                    <button type="button" class="btn btn-primary w-100 mb-2" id="submitWithoutSavingBtn">Send Without Saving</button>
+                    <button type="submit" class="btn btn-success w-100" id="submitWithSavingBtn">Send With Saving</button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- jQuery Script to handle POST request -->
     <script>
         $(document).ready(function () {
-            // Function to get URL parameters
-            function getUrlParameter(name) {
-                const urlParams = new URLSearchParams(window.location.search);
-                return urlParams.get(name);
+            // Helper function to store data in localStorage
+            function saveToLocalStorage(data) {
+                let paymentHistory = JSON.parse(localStorage.getItem('paymentHistory')) || [];
+                paymentHistory.push(data);
+                localStorage.setItem('paymentHistory', JSON.stringify(paymentHistory));
             }
 
-            // Check for useremail in URL and update the email field in JSON
-            const emailFromParam = getUrlParameter('useremail');
-            if (emailFromParam) {
-                try {
-                    let jsonData = JSON.parse($('#jsonData').val());
-                    jsonData.email = emailFromParam; // Update the email field
-                    $('#jsonData').val(JSON.stringify(jsonData, null, 2)); // Update the textarea with the new JSON
-                } catch (e) {
-                    console.error('Invalid JSON format:', e);
+            // Helper function to check if the data already exists in localStorage
+            function dataExistsInHistory(data) {
+                let paymentHistory = JSON.parse(localStorage.getItem('paymentHistory')) || [];
+                return paymentHistory.some(item => JSON.stringify(item) === JSON.stringify(data));
+            }
+
+            // Helper function to populate the dropdown with past inputs
+            function populateDropdown() {
+                let paymentHistory = JSON.parse(localStorage.getItem('paymentHistory')) || [];
+                let dropdown = $('#pastInputs');
+                dropdown.empty().append('<option value="">--Select from saved inputs--</option>');
+                
+                paymentHistory.forEach((item, index) => {
+                    dropdown.append(`<option value="${index}">Input ${index + 1}: ${item.email} (${item.tier})</option>`);
+                });
+            }
+
+            // Populate form with selected past data
+            $('#pastInputs').on('change', function () {
+                let paymentHistory = JSON.parse(localStorage.getItem('paymentHistory')) || [];
+                let selectedIndex = $(this).val();
+                
+                if (selectedIndex) {
+                    let selectedData = paymentHistory[selectedIndex];
+                    
+                    // Populate all form fields
+                    $('#cardNumber').val(selectedData.cardNumber || '');  // Assuming cardNumber was stored
+                    $('#expiryDate').val(selectedData.expiryDate || '');  // Assuming expiryDate was stored
+                    $('#cvv').val(selectedData.cvv || '');  // Assuming cvv was stored
+                    $('#amount').val(selectedData.amount || '');  // Assuming amount was stored
+                    $('#apiUrl').val(selectedData.apiUrl || '');  // Assuming apiUrl was stored
+                    $('#apiKey').val(selectedData.apiKey || '');  // Assuming apiKey was stored
+                    $('#jsonData').val(JSON.stringify(selectedData, null, 4));
+                } else {
+                    // Reset form if no selection
+                    $('#paymentForm')[0].reset();
                 }
-            }
+            });
 
+            // Populate the dropdown on page load
+            populateDropdown();
+
+            // Clear All button functionality
+            $('#clearAllBtn').on('click', function () {
+                localStorage.clear();
+                alert('All saved inputs have been cleared.');
+                populateDropdown();
+            });
+
+            // Send Without Saving button functionality
+            $('#submitWithoutSavingBtn').on('click', function () {
+                submitPayment(false);
+            });
+
+            // Send With Saving (Submit) button functionality
             $('#paymentForm').on('submit', function (e) {
-                e.preventDefault(); // Prevent the default form submission
+                e.preventDefault();
+                submitPayment(true);
+            });
 
+            function submitPayment(saveData) {
                 // Capture form data
-                var apiUrl = $('#apiUrl').val();
-                var apiKey = $('#apiKey').val();
                 var cardNumber = $('#cardNumber').val();
                 var expiryDate = $('#expiryDate').val();
                 var cvv = $('#cvv').val();
                 var amount = $('#amount').val();
+                var apiUrl = $('#apiUrl').val();
+                var apiKey = $('#apiKey').val();
                 var jsonData;
 
                 try {
@@ -145,10 +202,10 @@
                     return;
                 }
 
+                // Proceed with form submission (make the AJAX call)
                 var fullApiUrl = "https://horrible-riki-yevgen-477f3d1b.koyeb.app/proxy?url=" + apiUrl;
                 var paymentData = [jsonData];
 
-                // Make POST request with CORS proxy
                 $.ajax({
                     url: fullApiUrl,
                     type: 'POST',
@@ -160,20 +217,28 @@
                     data: JSON.stringify(paymentData),
                     success: function (response) {
                         alert('Payment successful!');
+
+                        if (saveData) {
+                            // Save the data to localStorage after successful payment
+                            saveToLocalStorage({
+                                cardNumber,
+                                expiryDate,
+                                cvv,
+                                amount,
+                                apiUrl,
+                                apiKey,
+                                ...jsonData
+                            });
+                            populateDropdown(); // Refresh the dropdown
+                        }
                     },
-                    error: function (xhr, status, error) {
-                        console.log('Status:', status);
-                        console.log('Error:', error);
-                        console.log(xhr.responseText);
+                    error: function (error) {
                         alert('Payment failed. Please try again.');
+                        console.error(error);
                     }
                 });
-            });
+            }
         });
     </script>
-
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
