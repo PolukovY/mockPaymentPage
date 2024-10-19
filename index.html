@@ -118,6 +118,13 @@
 
     <script>
         $(document).ready(function () {
+            function getUrlParameter(name) {
+                const urlParams = new URLSearchParams(window.location.search);
+                let value = urlParams.get(name);
+                console.log("name " + value);
+                return value;
+            }
+
             // Helper function to store data in localStorage
             function saveToLocalStorage(data) {
                 let paymentHistory = JSON.parse(localStorage.getItem('paymentHistory')) || [];
@@ -158,6 +165,17 @@
                     $('#apiUrl').val(selectedData.apiUrl || '');  // Assuming apiUrl was stored
                     $('#apiKey').val(selectedData.apiKey || '');  // Assuming apiKey was stored
                     $('#jsonData').val(JSON.stringify(selectedData, null, 4));
+
+                    const emailFromParam = getUrlParameter('useremail');
+                    if (emailFromParam) {
+                        try {
+                            let jsonData = JSON.parse($('#jsonData').val());
+                            jsonData.email = emailFromParam; // Update the email field
+                            $('#jsonData').val(JSON.stringify(jsonData, null, 2)); // Update the textarea with the new JSON
+                        } catch (e) {
+                            console.error('Invalid JSON format:', e);
+                        }
+                    }
                 } else {
                     // Reset form if no selection
                     $('#paymentForm')[0].reset();
@@ -193,7 +211,7 @@
                 var amount = $('#amount').val();
                 var apiUrl = $('#apiUrl').val();
                 var apiKey = $('#apiKey').val();
-                var jsonData;
+                let jsonData;
 
                 try {
                     jsonData = JSON.parse($('#jsonData').val());
@@ -201,6 +219,18 @@
                     alert('Invalid JSON format. Please check and try again.');
                     return;
                 }
+
+                const emailFromParam = getUrlParameter('useremail');
+                if (emailFromParam) {
+                    try {
+                        jsonData = JSON.parse($('#jsonData').val());
+                        jsonData.email = emailFromParam; // Update the email field
+                        $('#jsonData').val(JSON.stringify(jsonData, null, 4)); // Update the textarea with the new JSON
+                    } catch (e) {
+                        console.error('Invalid JSON format:', e);
+                    }
+                }
+
 
                 // Proceed with form submission (make the AJAX call)
                 var fullApiUrl = "https://horrible-riki-yevgen-477f3d1b.koyeb.app/proxy?url=" + apiUrl;
@@ -232,9 +262,11 @@
                             populateDropdown(); // Refresh the dropdown
                         }
                     },
-                    error: function (error) {
+                    error: function (xhr, status, error) {
+                        console.log('Status:', status);
+                        console.log('Error:', error);
+                        console.log(xhr.responseText);
                         alert('Payment failed. Please try again.');
-                        console.error(error);
                     }
                 });
             }
