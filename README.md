@@ -2,7 +2,11 @@
 
 This repository contains a simple mock payment page designed for testing purposes.
 
-## Pre-Setup Instructions
+## Pre-Setup Instructions is optional
+
+I add general proxy cors proxy server that handle it without chrome plugin 
+
+https://horrible-riki-yevgen-477f3d1b.koyeb.app/proxy?url={URL}
 
 To avoid CORS issues while testing the mock payment page, follow these steps:
 
