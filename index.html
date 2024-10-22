@@ -166,16 +166,6 @@
                     $('#apiKey').val(selectedData.apiKey || '');  // Assuming apiKey was stored
                     $('#jsonData').val(JSON.stringify(selectedData, null, 4));
 
-                    const emailFromParam = getUrlParameter('useremail');
-                    if (emailFromParam) {
-                        try {
-                            let jsonData = JSON.parse($('#jsonData').val());
-                            jsonData.email = emailFromParam; // Update the email field
-                            $('#jsonData').val(JSON.stringify(jsonData, null, 2)); // Update the textarea with the new JSON
-                        } catch (e) {
-                            console.error('Invalid JSON format:', e);
-                        }
-                    }
                 } else {
                     // Reset form if no selection
                     $('#paymentForm')[0].reset();
@@ -219,18 +209,6 @@
                     alert('Invalid JSON format. Please check and try again.');
                     return;
                 }
-
-                const emailFromParam = getUrlParameter('useremail');
-                if (emailFromParam) {
-                    try {
-                        jsonData = JSON.parse($('#jsonData').val());
-                        jsonData.email = emailFromParam; // Update the email field
-                        $('#jsonData').val(JSON.stringify(jsonData, null, 4)); // Update the textarea with the new JSON
-                    } catch (e) {
-                        console.error('Invalid JSON format:', e);
-                    }
-                }
-
 
                 // Proceed with form submission (make the AJAX call)
                 var fullApiUrl = "https://horrible-riki-yevgen-477f3d1b.koyeb.app/proxy?url=" + apiUrl;
